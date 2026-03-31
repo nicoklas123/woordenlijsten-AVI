@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Educatieve Woordenlijst Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Verdana', sans-serif; background-color: #fcfcfc; color: #1a1a1a; margin: 0; }
+        
+        @media print {
+            @page { margin: 1cm; size: A4; }
+            .no-print { display: none !important; }
+            body { background: white; }
+            #werkblad { 
+                border: none !important; 
+                box-shadow: none !important; 
+                width: 100% !important;
+                padding: 0 !important;
+                min-height: auto !important;
+            }
+        }
+
+        #werkblad {
+            position: relative;
+            min-height: 27.7cm;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .woord-blok {
+            border-left: 3px solid #e5e7eb;
+            padding-left: 1rem;
+            margin-bottom: 2rem;
+            break-inside: avoid;
+        }
+
+        input[type="range"] { accent-color: #000; }
+        .strak-input { border: 1px solid #000; border-radius: 0; padding: 0.5rem; width: 100%; background: white; }
+        
+        select[multiple] { height: 140px; }
+
+        .werkblad-footer {
+            margin-top: auto;
+            padding-top: 2rem;
+            text-align: right;
+        }
+    </style>
+</head>
+<body class="p-6 md:p-12">
+
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-12">
+        
+        <div class="no-print space-y-10 lg:col-span-1">
+            <section>
+                <h1 class="text-xs font-black uppercase tracking-[0.2em] mb-6 text-gray-400">Configuratie</h1>
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold uppercase mb-2">Selecteer AVI-Niveaus (Multi)</label>
+                        <select id="aviNiveaus" class="strak-input text-sm" multiple>
+                            <option value="M3" selected>AVI M3</option>
+                            <option value="E3">AVI E3</option>
+                            <option value="M4">AVI M4</option>
+                            <option value="E4">AVI E4</option>
+                            <option value="M5">AVI M5</option>
+                            <option value="E5">AVI E5</option>
+                            <option value="M6">AVI M6</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase mb-2">Totaal aantal woorden</label>
+                        <input type="number" id="aantal" value="25" step="5" class="strak-input">
+                    </div>
+
+                    <hr class="border-gray-200">
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase mb-2">Lettergrootte: <span id="sizeVal">20</span>px</label>
+                        <input type="range" id="size" min="14" max="36" value="20" class="w-full">
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="isBold" class="w-4 h-4 accent-black">
+                        <label for="isBold" class="text-xs font-bold uppercase">Vetgedrukt</label>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase mb-2">Regelafstand: <span id="spacingVal">1.8</span></label>
+                        <input type="range" id="spacing" min="1.2" max="3" step="0.1" value="1.8" class="w-full">
+                    </div>
+                </div>
+            </section>
+
+            <div class="flex flex-col gap-3">
+                <button onclick="genereer()" class="bg-black text-white py-4 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition">
+                    Genereer Lijst
+                </button>
+                <button onclick="window.print()" class="border border-black py-4 text-xs font-bold uppercase tracking-widest hover:bg-gray-100 transition">
+                    Print Werkblad
+                </button>
+            </div>
+
+            <p class="text-[10px] text-gray-400 uppercase tracking-widest mt-auto">CC BY-NC-SA 4.0 NicoKlas</p>
+        </div>
+
+        <div id="werkblad" class="lg:col-span-3 bg-white p-12 shadow-sm border border-gray-100 flex flex-col">
+            
+            <header class="flex justify-between items-start border-b-2 border-black pb-6 mb-12">
+                <div>
+                    <h2 class="text-3xl font-black uppercase tracking-tighter mb-2">Leesoefening</h2>
+                    <div class="flex gap-4 text-[10px] font-bold uppercase tracking-widest">
+                        <span id="headerNiveau" class="bg-black text-white px-2 py-0.5"></span>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] font-bold uppercase mb-4 text-gray-400 tracking-widest">Naam: ......................................................</p>
+                </div>
+            </header>
+
+            <main id="rijtjesContainer" class="grid grid-cols-2 md:grid-cols-3 gap-x-12 gap-y-4 flex-grow content-start">
+            </main>
+
+            <footer class="werkblad-footer">
+                <div class="text-[9px] text-gray-300 uppercase font-bold tracking-widest">
+                    CC BY-NC-SA 4.0 NicoKlas
+                </div>
+            </footer>
+        </div>
+
+    </div>
+
+    <script>
+        const woordenData = {
+            "M3": ["aan", "aap", "arm", "as", "bad", "bak", "bal", "bed", "bel", "bes", "bij", "bok", "bol", "bom", "boog", "boom", "boot", "bos", "bus", "dag", "dan", "de", "deuk", "die", "dik", "dit", "doe", "doos", "dop", "een", "en", "er", "ga", "gaan", "gat", "gek", "gum", "haan", "haas", "hap", "hek", "hem", "hen", "het", "hier", "hoed", "hok", "hol", "hop", "hout", "huis", "hut", "ik", "in", "is", "ja", "jas", "jij", "jou", "kaal", "kam", "kan", "kap", "kar", "kas", "kat", "kip", "koek", "koel", "kom", "kop", "kou", "lam", "lap", "les", "maai", "maan", "maar", "maat", "man", "meel", "meer", "meet", "mes", "met", "mis", "mol", "mug", "muis", "mus", "nat", "nee", "neus", "niet", "nog", "oom", "oog", "ook", "pen", "pop", "pot", "zegt", "bakt", "loopt", "pakt", "valt", "wint", "zit", "kust", "lacht", "mist"],
+            "E3": ["schoen", "schip", "schat", "schelp", "ring", "slang", "bang", "ding", "bank", "dank", "vonk", "mank", "krab", "web", "eb", "hond", "rood", "hard", "lacht", "bocht", "echt", "nacht", "haai", "kraai", "zwaai", "mooi", "kooi", "prooi", "bloei", "groei", "roei", "leeuw", "sneeuw", "spreeuw", "nieuw", "duw", "ruw", "straat", "blauw", "brief", "brand", "bril", "broek", "bron", "droom", "dorst", "dwerg", "feest", "flink", "fluit", "glas", "gras", "grijs", "groen", "groot", "grond", "juicht", "kaart", "kast", "klant", "kleur", "klim", "klok", "knap", "knoop", "krans", "krant", "kruis", "kwast", "markt", "plank", "plant", "poort", "prins", "punt", "recht", "rijk", "roest", "rots", "schaap", "schaar", "scherm", "schrift", "stoel", "staart", "botst", "sprong", "bankje", "kastje", "popje", "visje", "huisje", "boekje", "boompje", "balpak", "voordeur", "fietstas", "dakpan", "zaklamp", "knappe", "winkel"],
+            "M4": ["begrijpen", "gelukkig", "vertellen", "beloven", "gebeuren", "verloren", "thuis", "thermos", "ski", "liter", "avontuur", "rennend", "lachend", "spelend", "grappig", "rustig", "handig", "eerlijk", "vrolijk", "pijnlijk", "wandelen", "luisteren", "fluisteren", "kamertje", "bloemetje", "zonnetje", "pannetje", "belletje", "karretje", "sterretje", "gangetje", "bibberen", "stilletjes", "andere", "kinderen", "boerenzoon", "voetbalveld", "regenboog", "appelboom", "fietsenrek", "zaklampje", "wandeling", "rekening", "spanning", "koningin", "oefenen", "tekenen", "rekenen", "gisteren", "iedereen", "overal", "niemand", "plotseling", "opeens", "gevaarlijk", "moeilijk", "mogelijk", "duidelijk", "feestelijk", "hartelijk", "modderig", "kleverig", "hongerig", "doelpunten", "spelregel", "zwembadje", "zandbakje", "speelgoed", "buurmeisje", "schoolplein", "winterjas", "zomerjas", "regenbui", "hagelbui", "donderwolk", "bliksem", "zilveren", "gouden", "houten", "ijzeren", "plastic", "rubberen", "stoffen", "bruiloft", "verjaardag", "slingers", "gebakjes", "bakkerij", "boerderij", "dertigste", "kermis", "ketting", "konijn", "vandaag", "morgen", "gisteren"],
+            "E4": ["bovenbenen", "stevige", "gekleurde", "manieren", "vakantie", "operatie", "politie", "race", "computer", "flat", "keeper", "goal", "team", "trainer", "douche", "horloge", "logeren", "proberen", "studeren", "parkeren", "inmiddels", "ongeveer", "begrepen", "vergeten", "gezellig", "luisteraar", "wandelaar", "beoordelen", "veranderen", "verbeteren", "geloofwaardig", "onmogelijk", "ongevaarlijk", "wonderbaarlijk", "afspraak", "toespraak", "gereedschap", "gezondheid", "snelheid", "waarheid", "vrijheid", "schoonheid", "eenzaamheid", "dankbaarheid", "majesteit", "kwaliteit", "situatie", "positie", "actie", "reactie", "functie", "selectie", "emotie", "portie", "familie", "melodie", "energie", "olie", "kanarie", "historie", "televisie", "telefoon", "kapper", "kasteel", "keuken", "kijken", "kleden", "koper", "lachen", "lader", "lekker", "lepel", "lezen", "liever", "lopen", "maken", "vissen", "wonen", "vogel", "boter", "water", "teken", "vinger", "nagel", "kussen", "huppelen", "trappel", "rammel", "winkelen", "wandelen", "stapelen", "wiebelen", "dartelen", "Europa", "Afrika", "Amerika"],
+            "M5": ["diploma", "gorilla", "agenda", "pyjama", "jury", "hobby", "pony", "baby", "typen", "yoga", "royaal", "circus", "cijfer", "citroen", "cactus", "clown", "camera", "conflict", "contact", "concert", "oceaan", "centimeter", "december", "succes", "speciaal", "examen", "extra", "expert", "luxe", "saxofoon", "textiel", "experiment", "maximaal", "taxi", "‘s avonds", "‘s morgens", "‘s middags", "baby's", "hobby's", "auto's", "foto's", "menu's", "paraplu's", "taxi's", "video's", "radio's", "piano's", "kilo's", "programma", "cinema", "onbekend", "opdracht", "opwinding", "overmorgen", "prachtig", "aardigheid", "afdeling", "algemeen", "antwoord", "apparaat", "beleefd", "bijzonder", "boswachter", "dadelijk", "diefstal", "dikwijls", "dolfijnen", "donderdag", "doodsbang", "dromerig", "eenzaamheid", "eigenlijk", "eindelijk", "evenwicht", "formulieren", "gevoel", "gewoonte", "goedheid", "heerlijk", "herhaling", "hoeve", "hopelijk", "huwelijk", "lieveling", "meten", "mevrouw", "middag", "mogelijk", "natuurlijk", "nauwelijks", "nederlaag", "ongeluk", "ontbijt", "opa", "Canada", "Spanje"],
+            "E5": ["machine", "chocolade", "parachute", "chauffeur", "chique", "bagage", "garage", "horloge", "manege", "ravage", "komisch", "logisch", "magisch", "kritisch", "elektrisch", "fantastisch", "tropisch", "techniek", "officieel", "materiaal", "toernooi", "lawaai", "cadeau", "bureau", "niveau", "plateau", "café", "logé", "privé", "paté", "scène", "enquête", "crème", "ampère", "finish", "camping", "keeper", "weekend", "shampoo", "team", "trainen", "douchen", "actie", "politie", "vakantie", "informatie", "positie", "ruzie", "familie", "kabaal", "ideaal", "liniaal", "oceaan", "gitaar", "concert", "clown", "goochelaar", "circus", "dolfijn", "kasteel", "ridder", "prinses", "sprookje", "avontuur", "dapper", "gevaar", "dromen", "slapen", "ontbijt", "middag", "avond", "iemand", "niemand", "iedereen", "chef", "douane", "routine", "asiel", "asfalt", "station", "operatie", "prestatie", "traditie", "generatie", "jury", "baby", "hobby", "pony", "lolly", "party", "spray", "rally", "hockey", "volley", "display", "cowboy", "asiel", "discipline"],
+            "M6": ["eventuele", "ideale", "normale", "speciale", "individuele", "eventueel", "ideaal", "sociaal", "financieel", "commercieel", "industrieel", "essentieel", "virtueel", "visueel", "ritueel", "trema", "ruïne", "kopiëren", "geëindigd", "beëindigen", "geïnformeerd", "geïrriteerd", "reünie", "poëzie", "vacuüm", "bacteriën", "knieën", "zeeën", "ideeën", "reëel", "skiën", "pinguïn", "Azië", "Australië", "België", "Italië", "dossier", "fauteuil", "milieu", "reservoir", "trottoir", "accessoire", "inspecteur", "regisseur", "ingenieur", "chauffeur", "redacteur", "amateur", "directeur", "adviseur", "controleur", "monteur", "interieur", "exterieur", "junior", "senior", "sponsor", "sector", "factor", "motor", "tractor", "mentor", "professor", "succesvol", "fascinerend", "interessant", "publicatie", "organisatie", "communicatie", "demonstratie", "illustratie", "presentatie", "concentratie", "administratie", "advertentie", "alinea", "apotheek", "architect", "artikel", "collega", "conditie", "controle", "creatief", "cultuur", "Griekenland"]
+        };
+
+        function genereer() {
+            const select = document.getElementById('aviNiveaus');
+            const geselecteerdeNiveaus = Array.from(select.selectedOptions).map(opt => opt.value);
+            const aantal = parseInt(document.getElementById('aantal').value);
+            const size = document.getElementById('size').value;
+            const isBold = document.getElementById('isBold').checked;
+            const spacing = document.getElementById('spacing').value;
+
+            document.getElementById('sizeVal').innerText = size;
+            document.getElementById('spacingVal').innerText = spacing;
+            document.getElementById('headerNiveau').innerText = geselecteerdeNiveaus.length > 0 ? `AVI ${geselecteerdeNiveaus.join(' + ')}` : 'Geen niveau';
+
+            const container = document.getElementById('rijtjesContainer');
+            container.innerHTML = '';
+
+            if (geselecteerdeNiveaus.length === 0) return;
+
+            let alleBeschikbareWoorden = [];
+            geselecteerdeNiveaus.forEach(niv => {
+                alleBeschikbareWoorden = [...alleBeschikbareWoorden, ...woordenData[niv]];
+            });
+
+            alleBeschikbareWoorden = [...new Set(alleBeschikbareWoorden)];
+
+            let woorden = alleBeschikbareWoorden.sort(() => 0.5 - Math.random()).slice(0, aantal);
+
+            for (let i = 0; i < woorden.length; i += 5) {
+                const rijtje = woorden.slice(i, i + 5);
+                const blok = document.createElement('div');
+                blok.className = "woord-blok";
+                
+                const label = document.createElement('p');
+                label.className = "text-[9px] uppercase font-black text-gray-300 mb-2 tracking-tighter";
+                label.innerText = `Reeks ${(i/5) + 1}`;
+                blok.appendChild(label);
+
+                rijtje.forEach(woord => {
+                    const w = document.createElement('div');
+                    w.innerText = woord;
+                    w.style.fontSize = size + 'px';
+                    w.style.fontWeight = isBold ? 'bold' : 'normal';
+                    w.style.lineHeight = spacing;
+                    blok.appendChild(w);
+                });
+                
+                container.appendChild(blok);
+            }
+        }
+
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('input', () => { if(el.id !== 'aantal') genereer(); });
+        });
+
+        genereer();
+    </script>
+</body>
+</html>
