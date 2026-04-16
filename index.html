@@ -6,8 +6,30 @@
     <title>Educatieve Woordenlijst Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Verdana', sans-serif; background-color: #fcfcfc; color: #1a1a1a; margin: 0; }
+        /* Basis styling met de nieuwe greige kleuren */
+        body { 
+            font-family: 'Verdana', sans-serif; 
+            background-color: #e5e2db; /* gevel licht greige */
+            color: #1a1a1a; 
+            margin: 0; 
+        }
         
+        /* Zijbalk specificaties */
+        aside.no-print {
+            background-color: #d1cdc3; /* gevel donker greige */
+            border: 2px solid #000000; /* zwarte rand */
+            padding: 1.5rem;
+        }
+
+        /* Input styling */
+        .strak-input, select, input[type="number"] { 
+            border: 1px solid #000; 
+            border-radius: 0; 
+            padding: 0.5rem; 
+            width: 100%; 
+            background-color: #ffffff !important; /* Altijd wit voor leesbaarheid */
+        }
+
         @media print {
             @page { margin: 1cm; size: A4; }
             .no-print { display: none !important; }
@@ -36,7 +58,6 @@
         }
 
         input[type="range"] { accent-color: #000; }
-        .strak-input { border: 1px solid #000; border-radius: 0; padding: 0.5rem; width: 100%; background: white; }
         
         select[multiple] { height: 140px; }
 
@@ -51,12 +72,12 @@
 
     <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-12">
         
-        <div class="no-print space-y-10 lg:col-span-1">
+        <aside class="no-print space-y-10 lg:col-span-1">
             <section>
-                <h1 class="text-xs font-black uppercase tracking-[0.2em] mb-6 text-gray-400">Configuratie</h1>
+                <h1 class="text-xs font-black uppercase tracking-[0.2em] mb-6 text-gray-600">Configuratie</h1>
                 <div class="space-y-6">
                     <div>
-                        <label class="block text-xs font-bold uppercase mb-2">Selecteer AVI-Niveaus (Multi)</label>
+                        <label class="block text-xs font-bold uppercase mb-2">Selecteer AVI-Niveaus</label>
                         <select id="aviNiveaus" class="strak-input text-sm" multiple>
                             <option value="M3" selected>AVI M3</option>
                             <option value="E3">AVI E3</option>
@@ -73,7 +94,7 @@
                         <input type="number" id="aantal" value="25" step="5" class="strak-input">
                     </div>
 
-                    <hr class="border-gray-200">
+                    <hr class="border-black/10">
 
                     <div>
                         <label class="block text-xs font-bold uppercase mb-2">Lettergrootte: <span id="sizeVal">20</span>px</label>
@@ -96,15 +117,15 @@
                 <button onclick="genereer()" class="bg-black text-white py-4 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition">
                     Genereer Lijst
                 </button>
-                <button onclick="window.print()" class="border border-black py-4 text-xs font-bold uppercase tracking-widest hover:bg-gray-100 transition">
+                <button onclick="window.print()" class="border border-black py-4 text-xs font-bold uppercase tracking-widest hover:bg-white/50 transition">
                     Print Werkblad
                 </button>
             </div>
 
-            <p class="text-[10px] text-gray-400 uppercase tracking-widest mt-auto">CC BY-NC-SA 4.0 NicoKlas</p>
-        </div>
+            <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-auto">CC BY-NC-SA 4.0 NicoKlas</p>
+        </aside>
 
-        <div id="werkblad" class="lg:col-span-3 bg-white p-12 shadow-sm border border-gray-100 flex flex-col">
+        <div id="werkblad" class="lg:col-span-3 bg-white p-12 shadow-sm border border-gray-200 flex flex-col">
             
             <header class="flex justify-between items-start border-b-2 border-black pb-6 mb-12">
                 <div>
@@ -119,7 +140,7 @@
             </header>
 
             <main id="rijtjesContainer" class="grid grid-cols-2 md:grid-cols-3 gap-x-12 gap-y-4 flex-grow content-start">
-            </main>
+                </main>
 
             <footer class="werkblad-footer">
                 <div class="text-[9px] text-gray-300 uppercase font-bold tracking-widest">
@@ -131,6 +152,7 @@
     </div>
 
     <script>
+        // Woordendata blijft ongewijzigd
         const woordenData = {
             "M3": ["aan", "aap", "arm", "as", "bad", "bak", "bal", "bed", "bel", "bes", "bij", "bok", "bol", "bom", "boog", "boom", "boot", "bos", "bus", "dag", "dan", "de", "deuk", "die", "dik", "dit", "doe", "doos", "dop", "een", "en", "er", "ga", "gaan", "gat", "gek", "gum", "haan", "haas", "hap", "hek", "hem", "hen", "het", "hier", "hoed", "hok", "hol", "hop", "hout", "huis", "hut", "ik", "in", "is", "ja", "jas", "jij", "jou", "kaal", "kam", "kan", "kap", "kar", "kas", "kat", "kip", "koek", "koel", "kom", "kop", "kou", "lam", "lap", "les", "maai", "maan", "maar", "maat", "man", "meel", "meer", "meet", "mes", "met", "mis", "mol", "mug", "muis", "mus", "nat", "nee", "neus", "niet", "nog", "oom", "oog", "ook", "pen", "pop", "pot", "zegt", "bakt", "loopt", "pakt", "valt", "wint", "zit", "kust", "lacht", "mist"],
             "E3": ["schoen", "schip", "schat", "schelp", "ring", "slang", "bang", "ding", "bank", "dank", "vonk", "mank", "krab", "web", "eb", "hond", "rood", "hard", "lacht", "bocht", "echt", "nacht", "haai", "kraai", "zwaai", "mooi", "kooi", "prooi", "bloei", "groei", "roei", "leeuw", "sneeuw", "spreeuw", "nieuw", "duw", "ruw", "straat", "blauw", "brief", "brand", "bril", "broek", "bron", "droom", "dorst", "dwerg", "feest", "flink", "fluit", "glas", "gras", "grijs", "groen", "groot", "grond", "juicht", "kaart", "kast", "klant", "kleur", "klim", "klok", "knap", "knoop", "krans", "krant", "kruis", "kwast", "markt", "plank", "plant", "poort", "prins", "punt", "recht", "rijk", "roest", "rots", "schaap", "schaar", "scherm", "schrift", "stoel", "staart", "botst", "sprong", "bankje", "kastje", "popje", "visje", "huisje", "boekje", "boompje", "balpak", "voordeur", "fietstas", "dakpan", "zaklamp", "knappe", "winkel"],
@@ -164,7 +186,6 @@
             });
 
             alleBeschikbareWoorden = [...new Set(alleBeschikbareWoorden)];
-
             let woorden = alleBeschikbareWoorden.sort(() => 0.5 - Math.random()).slice(0, aantal);
 
             for (let i = 0; i < woorden.length; i += 5) {
